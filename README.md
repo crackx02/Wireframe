@@ -64,3 +64,5 @@ This appears to be an issue with the game's physics engine implementation. Might
 Again, an implementation issue. Might be fixed in a mod update.
 - The visualization jitters when moving around.  
 This is because the visualization is not interpolated between ticks. May be fixed in a mod update.
+- Some collision shapes appear to clip into each other a bit at the edges even when no forces are applied to them.  
+This is most likely the result of the `margin` parameter in the object's shapeset json.
