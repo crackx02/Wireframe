@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Dependencies">
+      <UniqueIdentifier>{0003b8ca-7880-4a60-b4c8-694928cfbb2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SM">
+      <UniqueIdentifier>{243acdf1-033c-48e8-a40f-91b79f79b73c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dependencies\xxHash">
+      <UniqueIdentifier>{ac53fad5-4352-4ffb-8dfc-4b5c1c9cad5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dependencies\Quickhull">
+      <UniqueIdentifier>{62555deb-a45d-4634-916d-15e2413f79ec}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\MinHook\src\buffer.c">
+      <Filter>Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\MinHook\src\hook.c">
+      <Filter>Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\MinHook\src\trampoline.c">
+      <Filter>Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\MinHook\src\hde\hde32.c">
+      <Filter>Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\MinHook\src\hde\hde64.c">
+      <Filter>Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SM\Console.cpp">
+      <Filter>SM</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SM\ChatCommandManager.cpp">
+      <Filter>SM</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SM\D3D11Device.cpp">
+      <Filter>SM</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SM\LineVertexArray.cpp">
+      <Filter>SM</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SM\RenderStateManager.cpp">
+      <Filter>SM</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BulletDebugDraw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\xxHash-dev\xxh_x86dispatch.c">
+      <Filter>Dependencies\xxHash</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\xxHash-dev\xxhash.c">
+      <Filter>Dependencies\xxHash</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\quickhull-master\QuickHull.cpp">
+      <Filter>Dependencies\Quickhull</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SM\MyPlayer.cpp">
+      <Filter>SM</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Dependencies\MinHook\src\buffer.h">
+      <Filter>Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\MinHook\src\trampoline.h">
+      <Filter>Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\MinHook\src\hde\hde32.h">
+      <Filter>Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\MinHook\src\hde\hde64.h">
+      <Filter>Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\MinHook\src\hde\pstdint.h">
+      <Filter>Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\MinHook\src\hde\table32.h">
+      <Filter>Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\MinHook\src\hde\table64.h">
+      <Filter>Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Types.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SM\Console.hpp">
+      <Filter>SM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NullHash.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SM\D3D11Device.hpp">
+      <Filter>SM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SM\ChatCommandManager.hpp">
+      <Filter>SM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SM\ClientWorld.hpp">
+      <Filter>SM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SM\PhysicsBase.hpp">
+      <Filter>SM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SM\TickDynamicsWorld.hpp">
+      <Filter>SM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SM\DebugDrawer.hpp">
+      <Filter>SM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SM\LineVertexArray.hpp">
+      <Filter>SM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SM\RenderStateManager.hpp">
+      <Filter>SM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SRWLock.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BulletDebugDraw.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SM\Physics.hpp">
+      <Filter>SM</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\xxHash-dev\xxh_x86dispatch.h">
+      <Filter>Dependencies\xxHash</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\xxHash-dev\xxh3.h">
+      <Filter>Dependencies\xxHash</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\xxHash-dev\xxhash.h">
+      <Filter>Dependencies\xxHash</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\quickhull-master\ConvexHull.hpp">
+      <Filter>Dependencies\Quickhull</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\quickhull-master\HalfEdgeMesh.hpp">
+      <Filter>Dependencies\Quickhull</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\quickhull-master\MathUtils.hpp">
+      <Filter>Dependencies\Quickhull</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\quickhull-master\QuickHull.hpp">
+      <Filter>Dependencies\Quickhull</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\quickhull-master\Structs\Mesh.hpp">
+      <Filter>Dependencies\Quickhull</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\quickhull-master\Structs\Plane.hpp">
+      <Filter>Dependencies\Quickhull</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\quickhull-master\Structs\Pool.hpp">
+      <Filter>Dependencies\Quickhull</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\quickhull-master\Structs\Ray.hpp">
+      <Filter>Dependencies\Quickhull</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\quickhull-master\Structs\Vector3.hpp">
+      <Filter>Dependencies\Quickhull</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\quickhull-master\Structs\VertexDataSource.hpp">
+      <Filter>Dependencies\Quickhull</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SM\MyPlayer.hpp">
+      <Filter>SM</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IndexPair.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
