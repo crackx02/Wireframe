@@ -9,10 +9,14 @@ Pictures say more than a thousand words, so take a look:
 <img width="1272" height="716" alt="polygonmode1" src="https://github.com/user-attachments/assets/279d3cf0-bc75-4e19-9caf-bbbfce9e14f9" />
 <img width="1270" height="718" alt="polygonmode2" src="https://github.com/user-attachments/assets/8d6791c9-23cf-498e-929e-a91c491a54f7" />
 
-#### Now, physics visualization, such as showing accurate wireframes of the collision mesh:
+#### Now, physics visualization, such as showing accurate wireframes of the collision mesh...
 <img width="1278" height="719" alt="collision" src="https://github.com/user-attachments/assets/1e651c1c-2210-4f93-b618-d828c82d457b" />
 
-#### ... AABB visualization ...
+#### ...Including AreaTrigger hitboxes!
+<img width="828" height="616" alt="areatrigger" src="https://github.com/user-attachments/assets/dab6dd50-dd64-439f-baf2-8dc8c3d2ec67" />
+
+
+#### AABB visualization ...
 <img width="1010" height="714" alt="aabb" src="https://github.com/user-attachments/assets/a1bd9333-92a3-406c-9c2b-d8bfb982ec41" />
 
 #### ... Collision contact point visualization and contact counts ...
@@ -58,3 +62,5 @@ Here's their meaning:
 This appears to be an issue with the game's physics engine implementation. Might be fixed in a future mod update.
 - Terrain and some static object's collisions are not visualized.  
 Again, an implementation issue. Might be fixed in a mod update.
+- The visualization jitters when moving around.  
+This is because the visualization is not interpolated between ticks. May be fixed in a mod update.
