@@ -43,7 +43,8 @@ All commands also have in-game descriptions available through the `/help` comman
   - 0: Renders `TickDynamicsWorld` (default, likely the main world).
   - 1: Renders `TickRaycastWorld` - World used for raycasts in the main tick loop (40 TPS). (?)
   - 2: Renders `InterpolatedRaycastWorld` - World used for raycasts in the render loop, is interpolated to avoid jitter. (?)
-  - 3: Renders `PhysicsWorld` - Physics world #4, it seems to be empty, not sure what its purpose is.
+  - 3: Renders `PhysicsWorld` - Physics world #4, it seems to be empty, not sure what its purpose is.  
+  **Note: The world information above may not be 100% accurate at the time of writing this.**
 - `/wf_phys_all`: Toggles all physics-related features on or off at once.
 - `/wf_phys_wireframe`: Toggles rendering of physics collision mesh wireframe.
 - `/wf_phys_aabb`: Toggles rendering of physics object's AABB (bounding box).
