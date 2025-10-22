@@ -26,6 +26,10 @@ Pictures say more than a thousand words, so take a look:
 #### ... and last but not least, character capsule visualization:
 <img width="913" height="696" alt="capsule" src="https://github.com/user-attachments/assets/edc3067a-915a-483c-b423-002774064b6c" />
 
+### UPDATE 1.2.0: Terrain and static objects visualization!
+<img width="1920" height="1080" alt="worldDebug2" src="https://github.com/user-attachments/assets/c1c1a129-ed29-4e00-88b4-3f7494a4ecb5" />
+<img width="1920" height="1080" alt="worldDebug" src="https://github.com/user-attachments/assets/3f586805-f5aa-44a3-bf5e-28d04fc1c73a" />
+
 ## How to use
 
 Simply inject the DLL using a DLL injector of your choice.
@@ -35,17 +39,26 @@ All commands also have in-game descriptions available through the `/help` comman
 **Commands prefixed with `wf_phys_` are specific to physics-related features.**
 
 - `/polygonmode`: Switches all rendering between normal and wireframe render mode.
+- `/wf_phys_setworld [integer]`: Scrap Mechanic simulates 4 (four!) physics worlds per one in-game world. This command selects which of these worlds to render:
+  - 0: Renders `TickDynamicsWorld` (default, likely the main world).
+  - 1: Renders `TickRaycastWorld` - World used for raycasts in the main tick loop (40 TPS). (?)
+  - 2: Renders `InterpolatedRaycastWorld` - World used for raycasts in the render loop, is interpolated to avoid jitter. (?)
+  - 3: Renders `PhysicsWorld` - Physics world #4, it seems to be empty, not sure what its purpose is.
 - `/wf_phys_all`: Toggles all physics-related features on or off at once.
 - `/wf_phys_wireframe`: Toggles rendering of physics collision mesh wireframe.
 - `/wf_phys_aabb`: Toggles rendering of physics object's AABB (bounding box).
 - `/wf_phys_contacts`: Toggles rendering of collision contact points.
 - `/wf_phys_constraints`: Toggles rendering of physics constraint(joint) origins.
-- `/wf_phys_constraintlimits`: Toggles rendering of physics constraint limits.
+- `/wf_phys_constraintLimits`: Toggles rendering of physics constraint limits.
 - `/wf_phys_normals`: Toggles rendering of collision mesh normals.
 - `/wf_phys_transforms`: Toggles rendering of physics object's transforms (axes). **Note: Requires wireframe to be enabled!**
 - `/wf_phys_capsules`: Toggles rendering of character capsules. **Note: Requires wireframe to be enabled!**
 - `/wf_phys_renderdistance [number]` Sets the physics debug render distance in meters, around the camera.
 - `/wf_phys_contactcount`: Shows the number of collision contacts that were registered in the previous frame. **Note: Requires contact rendering to be enabled!**
+- `/wf_phys_showHiddenObjects`: Toggles rendering of object data for objects that were marked to not render (e.g. terrain cells).
+
+**Note: When using `/wf_phys_wireframe` together with `/wf_phys_showHiddenObjects`, the game may freeze or lag a bit when moving around the world for the
+first couple seconds, as the mod has to generate a large amount of debug data in the background. This data is cached and lag will stop after it is generated.**
 
 ## Collision wireframe colors
 
@@ -59,10 +72,9 @@ Here's their meaning:
 ## Known issues
 
 - `/wf_phys_constraintlimits` and `wf_phys_normals` don't seem to work/render properly.  
-This appears to be an issue with the game's physics engine implementation. Might be fixed in a future mod update.
-- Terrain and some static object's collisions are not visualized.  
-Again, an implementation issue. Might be fixed in a mod update.
+Normals are only rendered when available, which currently seems to only be the case for terrain cell meshes (shown with hidden objects enabled).  
+Constraint limit rendering seems to be an issue with the game's physics engine implementation. Might be fixed in a future mod update.
 - The visualization jitters when moving around.  
-This is because the visualization is not interpolated between ticks. May be fixed in a mod update.
+This depends on which physics world is being visualized - see `/wf_phys_setworld` (**tick** worlds are not interpolated and will thus jitter).
 - Some collision shapes appear to clip into each other a bit at the edges even when no forces are applied to them.  
-This is most likely the result of the `margin` parameter in the object's shapeset json.
+The visualization is not 100% accurate.
