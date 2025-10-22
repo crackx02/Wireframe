@@ -5,6 +5,8 @@
 #include "glm/glm.hpp"
 #include "LinearMath/btVector3.h"
 
+#include "Util.hpp"
+
 using Vec3 = glm::vec3;
 using Vec2 = glm::vec2;
 using u8Vec3 = glm::u8vec3;
@@ -29,3 +31,12 @@ inline static constexpr Vec3 ToGLM(const btVector3& vec) {
 inline static btVector3 ToBT(const Vec3& vec) {
 	return {vec.x, vec.y, vec.z};
 };
+
+// btVector3 doesn't have a comparison operator, but implicitly converts
+// itself to float and compares only the X value (wtf)
+inline static bool GT(const btVector3& a, const btVector3& b) {
+	return Vec3CMP(a, >= , b);
+}
+inline static bool LT(const btVector3& a, const btVector3& b) {
+	return Vec3CMP(a, <= , b);
+}

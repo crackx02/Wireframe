@@ -29,6 +29,7 @@ constexpr uintptr Offset_InitializeConsole = 0x02d7a80;
 constexpr uintptr Offset_InitializeDXDevice = 0x090d140;
 constexpr uintptr Offset_PlayState_Cleanup = 0x042dab0;
 constexpr uintptr Offset_ChatCommandManager = 0x06c5d10;
+constexpr uintptr Offset_DebugDrawWorld = 0x0ca7f90;
 constexpr uintptr Offset_DebugDrawObject = 0x0ca7020;
 constexpr uintptr Offset_DebugDrawer_Render = 0x09ef890;
 constexpr uintptr Offset_ClientWorldUpdate = 0x02abec0;
@@ -54,6 +55,8 @@ static struct {
 	NullHashMap<ID3D11RasterizerState*, ID3D11RasterizerState*> mapRasterStateToWireframeState;
 	BulletDebugDraw btDebugDraw;
 	NullHashMap<uint32, std::vector<uint32>> mapHullHashToLineIndices;
+	uint32 physicsWorldIndex = 0;
+	bool drawDisabledObjects = false;
 } g_State;
 
 
@@ -89,7 +92,7 @@ static std::string OnChatCommand(const ChatCommand::VecParams& vecParams) {
 	} else if ( sCommand == "/wf_phys_constraints" ) {
 		btd.setConstraints(!btd.getConstraints());
 		return std::format("Physics constraint (joint) debug rendering {}", btd.getConstraints() ? "enabled" : "disabled");
-	} else if ( sCommand == "/wf_phys_constraintlimits" ) {
+	} else if ( sCommand == "/wf_phys_constraintLimits" ) {
 		btd.setConstraintLimits(!btd.getConstraintLimits());
 		return std::format("Physics constraint (joint) limit rendering {}", btd.getConstraintLimits() ? "enabled" : "disabled");
 	} else if ( sCommand == "/wf_phys_normals" ) {
@@ -109,6 +112,24 @@ static std::string OnChatCommand(const ChatCommand::VecParams& vecParams) {
 		return std::format("Physics debug render distance set to {} meters", p.floatValue);
 	} else if ( sCommand == "/wf_phys_contactcount" ) {
 		return std::format("Collision contact counts:\nTotal: {}\nRendered: {}", btd.getTotalContacts(), btd.getRenderContacts());
+	} else if ( sCommand == "/wf_phys_setworld" ) {
+		uint32 index = vecParams[1].intValue;
+		g_State.physicsWorldIndex = index;
+		switch( index ) {
+			case 0:
+				return "DebugDraw TickDynamicsWorld";
+			case 1:
+				return "DebugDraw TickRaycastWorld";
+			case 2:
+				return "DebugDraw InterpolatedRaycastWorld";
+			case 3:
+				return "DebugDraw PhysicsWorld";
+			default:
+				g_State.physicsWorldIndex = 0;
+				return "Index out of range, default to 0";
+		}
+	} else if ( sCommand == "/wf_phys_showHiddenObjects" ) {
+		return (g_State.drawDisabledObjects = !g_State.drawDisabledObjects) ? "Hidden objects enabled" : "Hidden objects disabled";
 	} else
 		return "Unknown command received";
 }
@@ -116,6 +137,90 @@ static std::string OnChatCommand(const ChatCommand::VecParams& vecParams) {
 
 
 // Hooks //
+
+static void(*O_DebugDrawWorld)(btCollisionWorld*) = nullptr;
+static void H_DebugDrawWorld(btCollisionWorld* self) {
+	btIDebugDraw* pDebugDraw = self->getDebugDrawer();
+	if ( pDebugDraw ) {
+		pDebugDraw->clearLines();
+
+		btIDebugDraw::DefaultColors defaultColors = pDebugDraw->getDefaultColors();
+
+		if ( pDebugDraw->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints ) {
+			btDispatcher* pDispatch = self->getDispatcher();
+			if ( pDispatch ) {
+				int numManifolds = pDispatch->getNumManifolds();
+
+				for ( int i = 0; i < numManifolds; i++ ) {
+					btPersistentManifold* contactManifold = pDispatch->getManifoldByIndexInternal(i);
+
+					int numContacts = contactManifold->getNumContacts();
+					for ( int j = 0; j < numContacts; j++ ) {
+						btManifoldPoint& cp = contactManifold->getContactPoint(j);
+						pDebugDraw->drawContactPoint(cp.m_positionWorldOnB, cp.m_normalWorldOnB, cp.getDistance(), cp.getLifeTime(), defaultColors.m_contactPoint);
+					}
+				}
+			}
+		}
+
+		if ( pDebugDraw->getDebugMode() & (btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb) ) {
+			const auto& colObjects = self->getCollisionObjectArray();
+			for ( int i = 0; i < colObjects.size(); i++ ) {
+				btCollisionObject* colObj = colObjects[i];
+				if ( g_State.drawDisabledObjects || (colObj->getCollisionFlags() & btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT) == 0 ) {
+					if ( pDebugDraw->getDebugMode() & btIDebugDraw::DBG_DrawWireframe ) {
+						btVector3 color(btScalar(0.4), btScalar(0.4), btScalar(0.4));
+
+						switch ( colObj->getActivationState() ) {
+							case ACTIVE_TAG:
+								color = defaultColors.m_activeObject;
+								break;
+							case ISLAND_SLEEPING:
+								color = defaultColors.m_deactivatedObject;
+								break;
+							case WANTS_DEACTIVATION:
+								color = defaultColors.m_wantsDeactivationObject;
+								break;
+							case DISABLE_DEACTIVATION:
+								color = defaultColors.m_disabledDeactivationObject;
+								break;
+							case DISABLE_SIMULATION:
+								color = defaultColors.m_disabledSimulationObject;
+								break;
+							default:
+								color = btVector3(btScalar(.3), btScalar(0.3), btScalar(0.3));
+						};
+
+						colObj->getCustomDebugColor(color);
+
+						self->debugDrawObject(colObj->getWorldTransform(), colObj->getCollisionShape(), color);
+					}
+					if ( pDebugDraw->getDebugMode() & btIDebugDraw::DBG_DrawAabb ) {
+						btVector3 minAabb, maxAabb;
+						btVector3 colorvec = defaultColors.m_aabb;
+						colObj->getCollisionShape()->getAabb(colObj->getWorldTransform(), minAabb, maxAabb);
+						// Threshold found in SM exe
+						btVector3 contactThreshold(0.02f, 0.02f, 0.02f);
+						minAabb -= contactThreshold;
+						maxAabb += contactThreshold;
+
+						btVector3 minAabb2, maxAabb2;
+
+						if ( self->getDispatchInfo().m_useContinuous && colObj->getInternalType() == btCollisionObject::CO_RIGID_BODY && !colObj->isStaticOrKinematicObject() ) {
+							colObj->getCollisionShape()->getAabb(colObj->getInterpolationWorldTransform(), minAabb2, maxAabb2);
+							minAabb2 -= contactThreshold;
+							maxAabb2 += contactThreshold;
+							minAabb.setMin(minAabb2);
+							maxAabb.setMax(maxAabb2);
+						}
+
+						pDebugDraw->drawAabb(minAabb, maxAabb, colorvec);
+					}
+				}
+			}
+		}
+	}
+}
 
 static void(*O_DebugDrawObject)(TickDynamicsWorld*, const btTransform&, const btCollisionShape*, const btVector3&) = nullptr;
 static void H_DebugDrawObject(
@@ -126,6 +231,12 @@ static void H_DebugDrawObject(
 ) {
 	BulletDebugDraw* pDrawer = (BulletDebugDraw*)self->getDebugDrawer();
 	if ( !pDrawer )
+		return;
+
+	const btVector3& origin = transform.getOrigin();
+	btVector3 cullMin, cullMax;
+	g_State.btDebugDraw.getCullingBox(cullMin, cullMax);
+	if ( !(GT(origin, cullMin) && LT(origin, cullMax)) )
 		return;
 
 	int shapeType = pShape->getShapeType();
@@ -211,31 +322,61 @@ static void H_ClientWorldUpdate(ClientWorld* self, float delta) {
 	if ( !pPhysicsBase )
 		return;
 
-	TickDynamicsWorld* pTickWorld = pPhysicsBase->getTickWorld();
-	if ( !pTickWorld )
+	btCollisionWorld* pCollWorld = nullptr;
+	switch( g_State.physicsWorldIndex ) {
+		case 0:
+			pCollWorld = pPhysicsBase->getTickDynamicsWorld();
+			break;
+		case 1:
+			pCollWorld = pPhysicsBase->getTickRaycastWorld();
+			break;
+		case 2:
+			pCollWorld = pPhysicsBase->getInterpolatedRaycastWorld();
+			break;
+		case 3:
+			pCollWorld = pPhysics->getCollisionWorld();
+			break;
+	}
+
+	if ( !pCollWorld )
 		return;
 
-	if ( !pTickWorld->getDebugDrawer() )
-		pTickWorld->setDebugDrawer(&g_State.btDebugDraw);
+	if ( !pCollWorld->getDebugDrawer() )
+		pCollWorld->setDebugDrawer(&g_State.btDebugDraw);
 
 	if ( MyPlayer* mp = MyPlayer::Get(); mp != nullptr )
 		g_State.btDebugDraw.setCullingBoxPosition(ToBT(mp->getCameraPosition()));
 
-	std::scoped_lock lock(g_State.btDebugDraw.getMutex());
-	g_State.btDebugDraw.resetTickData();
-	pTickWorld->debugDrawWorld();
+	{
+		std::scoped_lock lock(g_State.btDebugDraw.getMutex());
+		g_State.btDebugDraw.resetTickData();
+		if ( g_State.physicsWorldIndex == 0 )
+			pCollWorld->debugDrawWorld();
+		else
+			H_DebugDrawWorld(pCollWorld);
+	}
 }
 
 static ChatCommandManager*(*O_ChatCommandManager)(ChatCommandManager*) = nullptr;
 static ChatCommandManager* H_ChatCommandManager(ChatCommandManager* self) {
 	O_ChatCommandManager(self);
 	self->registerCommand("/polygonmode", {}, OnChatCommand, "Switches global rendering between normal and wireframe render modes.");
+	self->registerCommand(
+		"/wf_phys_setworld",
+		{{ChatCommand::Param::Int, "world index", false}},
+		OnChatCommand,
+R"(Selects which physics world to render (for wf_phys_* commands).
+0: TickDynamicsWorld (default)
+1: TickRaycastWorld
+2: InterpolatedRaycastWorld
+3: PhysicsWorld)"
+	);
 	self->registerCommand("/wf_phys_all", {}, OnChatCommand, "Enables/disables all available physics debug rendering features at once.");
 	self->registerCommand("/wf_phys_wireframe", {}, OnChatCommand, "Toggles rendering of physics object's collision mesh.");
 	self->registerCommand("/wf_phys_aabb", {}, OnChatCommand, "Toggles rendering of physics object's AABB (bounding box).");
 	self->registerCommand("/wf_phys_contacts", {}, OnChatCommand, "Toggles rendering of physics object's collision contact points.");
 	self->registerCommand("/wf_phys_constraints", {}, OnChatCommand, "Toggles debug rendering of physics constraint (joint) origin transforms.");
-	self->registerCommand("/wf_phys_constraintlimits", {}, OnChatCommand, "Toggles rendering of physics constraint (joint) limits.");
+	self->registerCommand("/wf_phys_constraintLimits", {}, OnChatCommand, "Toggles rendering of physics constraint (joint) limits.");
 	self->registerCommand("/wf_phys_normals", {}, OnChatCommand, "Toggles rendering of physics collision mesh normals.");
 	self->registerCommand("/wf_phys_transforms", {}, OnChatCommand, "Toggles rendering of physics object's transform axes.\n#FFFF00Note: Requires /wf_phys_wireframe!");
 	self->registerCommand("/wf_phys_capsules", {}, OnChatCommand, "Toggles rendering of character capsule shapes.\n#FFFF00Note: Requires /wf_phys_wireframe!");
@@ -243,9 +384,11 @@ static ChatCommandManager* H_ChatCommandManager(ChatCommandManager* self) {
 		"/wf_phys_renderdistance",
 		{{ChatCommand::Param::Float, "distance", false}},
 		OnChatCommand,
-		"Sets the render distance for physics debug drawing, in meters, around the camera position (default: 32)."
+R"(Sets the render distance for physics debug drawing, in meters, around the camera position (default: 82).
+#ffff00Note: Terrain cells are very large objects! Setting the distance below the default may cause them to not render properly.)"
 	);
 	self->registerCommand("/wf_phys_contactcount", {}, OnChatCommand, "Returns the number of debug collision contact points that were registered in the last frame.");
+	self->registerCommand("/wf_phys_showHiddenObjects", {}, OnChatCommand, "Toggles rendering of object data for objects that were marked to not render (e.g. terrain).");
 	SM_LOG("Registered chat commands");
 	return self;
 }
@@ -260,6 +403,8 @@ static void H_PlayState_Cleanup(void* self) {
 	g_State.btDebugDraw.setCullingBoxRadius(32.0f);
 	g_State.btDebugDraw.resetTickData();
 	g_State.mapHullHashToLineIndices.clear();
+	g_State.physicsWorldIndex = 0;
+	g_State.drawDisabledObjects = false;
 	O_PlayState_Cleanup(self);
 }
 
@@ -330,6 +475,9 @@ static void H_InitializeConsole(void* pContraption, void* ptr) {
 	ResolveClassOffset(ChatCommandManager);
 	ResolveClassOffset(RenderStateManager);
 	ResolveClassOffset(MyPlayer);
+
+	if ( MakeHook(DebugDrawWorld) != MH_OK )
+		SM_ERROR("Failed to hook DebugDrawWorld!");
 
 	if ( MakeHook(DebugDrawObject) != MH_OK )
 		SM_ERROR("Failed to hook DebugDrawObject!");

@@ -67,6 +67,7 @@ class BulletDebugDraw : public btIDebugDraw {
 
 		inline void setCullingBoxPosition(const btVector3& pos) {m_vCullingBoxPosition = pos; m_updateCullingBox();};
 		inline void setCullingBoxRadius(float radius) {m_vCullingBoxRadius = {radius, radius, radius}; m_updateCullingBox();}
+		inline void getCullingBox(btVector3& min, btVector3& max) const {min = m_vCullingBoxMin; max = m_vCullingBoxMax;};
 
 		inline uint32 getTotalContacts() const {return m_totalContacts;};
 		inline uint32 getRenderContacts() const { return m_renderContacts; };
@@ -92,9 +93,9 @@ class BulletDebugDraw : public btIDebugDraw {
 		std::mutex m_mutex;
 		std::vector<Line> m_vecLines;
 		btVector3 m_vCullingBoxPosition = {0.0f, 0.0f, 0.0f};
-		btVector3 m_vCullingBoxRadius = {32.0f, 32.0f, 32.0f};
-		btVector3 m_vCullingBoxMin = {-32.0f, -32.0f, -32.0f};
-		btVector3 m_vCullingBoxMax = {32.0f, 32.0f, 32.0f};
+		btVector3 m_vCullingBoxRadius = {82.0f, 82.0f, 82.0f};
+		btVector3 m_vCullingBoxMin = {-82.0f, -82.0f, -82.0f};
+		btVector3 m_vCullingBoxMax = {82.0f, 82.0f, 82.0f};
 		int m_totalContacts = 0;
 		int m_renderContacts = 0;
 		int m_debugMode = DBG_NoDebug;

@@ -8,15 +8,6 @@ using namespace SM;
 constexpr uint64 MaxContactLifetimeMs = 2000;
 constexpr Vec3 ContactCountLimitColor = {1.0f, 0.0f, 0.0f};
 
-// btVector3 doesn't have a comparison operator, but implicitly converts
-// itself to float and compares only the X value (wtf)
-inline static bool GT(const btVector3& a, const btVector3& b) {
-	return Vec3CMP(a, >= , b);
-}
-inline static bool LT(const btVector3& a, const btVector3& b) {
-	return Vec3CMP(a, <=, b);
-}
-
 void BulletDebugDraw::drawLine(const btVector3& from, const btVector3& to, const btVector3& color) {
 	if ( GT(from, m_vCullingBoxMin) && LT(from, m_vCullingBoxMax) )
 		m_vecLines.emplace_back(ToGLM(from), ToGLM(to), ToGLM(color * 255.0f));
