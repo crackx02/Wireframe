@@ -47,7 +47,7 @@ namespace SM {
 			static ChatCommandManager** _selfPtr;
 			inline static ChatCommandManager* Get() {return *_selfPtr;};
 
-			void registerCommand(
+			void registerOrUpdateCommand(
 				const std::string& name,
 				const std::vector<ChatCommand::ParamInfo>& params,
 				const ChatCommand::Callback& cb,

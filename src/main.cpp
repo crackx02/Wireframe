@@ -57,11 +57,49 @@ static struct {
 	NullHashMap<uint32, std::vector<uint32>> mapHullHashToLineIndices;
 	uint32 physicsWorldIndex = 0;
 	bool drawDisabledObjects = false;
+	bool commandsHidden = false;
 } g_State;
 
 
 
 // Callbacks
+
+static std::string OnChatCommand(const ChatCommand::VecParams& vecParams);
+
+static void RegisterCommands(ChatCommandManager* self, bool hidden = false) {
+	self->registerOrUpdateCommand("/polygonmode", {}, OnChatCommand, "Switches global rendering between normal and wireframe render modes.");
+	self->registerOrUpdateCommand("/wf_hide", {}, OnChatCommand, "Toggles whether wireframe chat commands are hidden from the chat command auto-complete feature.");
+	self->registerOrUpdateCommand(
+		"/wf_phys_setworld",
+		{{ChatCommand::Param::Int, "world index", false}},
+		OnChatCommand,
+		R"(Selects which physics world to render (for wf_phys_* commands).
+0: TickDynamicsWorld (default)
+1: TickRaycastWorld
+2: InterpolatedRaycastWorld
+3: PhysicsWorld)", hidden
+	);
+	self->registerOrUpdateCommand("/wf_phys_all", {}, OnChatCommand, "Enables/disables all available physics debug rendering features at once.", hidden);
+	self->registerOrUpdateCommand("/wf_phys_wireframe", {}, OnChatCommand, "Toggles rendering of physics object's collision mesh.", hidden);
+	self->registerOrUpdateCommand("/wf_phys_aabb", {}, OnChatCommand, "Toggles rendering of physics object's AABB (bounding box).", hidden);
+	self->registerOrUpdateCommand("/wf_phys_contacts", {}, OnChatCommand, "Toggles rendering of physics object's collision contact points.", hidden);
+	self->registerOrUpdateCommand("/wf_phys_constraints", {}, OnChatCommand, "Toggles debug rendering of physics constraint (joint) origin transforms.", hidden);
+	self->registerOrUpdateCommand("/wf_phys_constraintLimits", {}, OnChatCommand, "Toggles rendering of physics constraint (joint) limits.", hidden);
+	self->registerOrUpdateCommand("/wf_phys_normals", {}, OnChatCommand, "Toggles rendering of physics collision mesh normals.", hidden);
+	self->registerOrUpdateCommand("/wf_phys_transforms", {}, OnChatCommand, "Toggles rendering of physics object's transform axes.\n#FFFF00Note: Requires /wf_phys_wireframe!", hidden);
+	self->registerOrUpdateCommand("/wf_phys_capsules", {}, OnChatCommand, "Toggles rendering of character capsule shapes.\n#FFFF00Note: Requires /wf_phys_wireframe!", hidden);
+	self->registerOrUpdateCommand(
+		"/wf_phys_renderdistance",
+		{{ChatCommand::Param::Float, "distance", false}},
+		OnChatCommand,
+		R"(Sets the render distance for physics debug drawing, in meters, around the camera position (default: 82).
+#ffff00Note: Terrain cells are very large objects! Setting the distance below the default may cause them to not render properly.)",
+		hidden
+	);
+	self->registerOrUpdateCommand("/wf_phys_contactcount", {}, OnChatCommand, "Returns the number of debug collision contact points that were registered in the last frame.", hidden);
+	self->registerOrUpdateCommand("/wf_phys_showHiddenObjects", {}, OnChatCommand, "Toggles rendering of object data for objects that were marked to not render (e.g. terrain).", hidden);
+	SM_LOG("Registered chat commands");
+}
 
 static std::string OnChatCommand(const ChatCommand::VecParams& vecParams) {
 	SM_ASSERT(vecParams.size() != 0);
@@ -70,6 +108,12 @@ static std::string OnChatCommand(const ChatCommand::VecParams& vecParams) {
 
 	if ( sCommand == "/polygonmode" || sCommand == "/wireframe" )
 		return std::format("Global wireframe rendering {}", (g_State.bWireframeEnabled = !g_State.bWireframeEnabled) ? "enabled" : "disabled");
+
+	if ( sCommand == "/wf_hide" ) {
+		g_State.commandsHidden = !g_State.commandsHidden;
+		RegisterCommands(ChatCommandManager::Get(), g_State.commandsHidden);
+		return std::format("Wireframe chat commands are {}", g_State.commandsHidden ? "hidden" : "shown");
+	}
 
 	auto& btd = g_State.btDebugDraw;
 	if ( sCommand == "/wf_phys_all" ) {
@@ -360,36 +404,7 @@ static void H_ClientWorldUpdate(ClientWorld* self, float delta) {
 static ChatCommandManager*(*O_ChatCommandManager)(ChatCommandManager*) = nullptr;
 static ChatCommandManager* H_ChatCommandManager(ChatCommandManager* self) {
 	O_ChatCommandManager(self);
-	self->registerCommand("/polygonmode", {}, OnChatCommand, "Switches global rendering between normal and wireframe render modes.");
-	self->registerCommand(
-		"/wf_phys_setworld",
-		{{ChatCommand::Param::Int, "world index", false}},
-		OnChatCommand,
-R"(Selects which physics world to render (for wf_phys_* commands).
-0: TickDynamicsWorld (default)
-1: TickRaycastWorld
-2: InterpolatedRaycastWorld
-3: PhysicsWorld)"
-	);
-	self->registerCommand("/wf_phys_all", {}, OnChatCommand, "Enables/disables all available physics debug rendering features at once.");
-	self->registerCommand("/wf_phys_wireframe", {}, OnChatCommand, "Toggles rendering of physics object's collision mesh.");
-	self->registerCommand("/wf_phys_aabb", {}, OnChatCommand, "Toggles rendering of physics object's AABB (bounding box).");
-	self->registerCommand("/wf_phys_contacts", {}, OnChatCommand, "Toggles rendering of physics object's collision contact points.");
-	self->registerCommand("/wf_phys_constraints", {}, OnChatCommand, "Toggles debug rendering of physics constraint (joint) origin transforms.");
-	self->registerCommand("/wf_phys_constraintLimits", {}, OnChatCommand, "Toggles rendering of physics constraint (joint) limits.");
-	self->registerCommand("/wf_phys_normals", {}, OnChatCommand, "Toggles rendering of physics collision mesh normals.");
-	self->registerCommand("/wf_phys_transforms", {}, OnChatCommand, "Toggles rendering of physics object's transform axes.\n#FFFF00Note: Requires /wf_phys_wireframe!");
-	self->registerCommand("/wf_phys_capsules", {}, OnChatCommand, "Toggles rendering of character capsule shapes.\n#FFFF00Note: Requires /wf_phys_wireframe!");
-	self->registerCommand(
-		"/wf_phys_renderdistance",
-		{{ChatCommand::Param::Float, "distance", false}},
-		OnChatCommand,
-R"(Sets the render distance for physics debug drawing, in meters, around the camera position (default: 82).
-#ffff00Note: Terrain cells are very large objects! Setting the distance below the default may cause them to not render properly.)"
-	);
-	self->registerCommand("/wf_phys_contactcount", {}, OnChatCommand, "Returns the number of debug collision contact points that were registered in the last frame.");
-	self->registerCommand("/wf_phys_showHiddenObjects", {}, OnChatCommand, "Toggles rendering of object data for objects that were marked to not render (e.g. terrain).");
-	SM_LOG("Registered chat commands");
+	RegisterCommands(self);
 	return self;
 }
 
@@ -405,6 +420,7 @@ static void H_PlayState_Cleanup(void* self) {
 	g_State.mapHullHashToLineIndices.clear();
 	g_State.physicsWorldIndex = 0;
 	g_State.drawDisabledObjects = false;
+	g_State.commandsHidden = false;
 	O_PlayState_Cleanup(self);
 }
 

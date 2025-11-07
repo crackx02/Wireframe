@@ -3,9 +3,9 @@
 
 using namespace SM;
 
-ChatCommandManager** ChatCommandManager::_selfPtr = (ChatCommandManager**)0x06c5ef2;
+ChatCommandManager** ChatCommandManager::_selfPtr = (ChatCommandManager**)0x1267678;
 
-void ChatCommandManager::registerCommand(
+void ChatCommandManager::registerOrUpdateCommand(
 	const std::string& name,
 	const std::vector<ChatCommand::ParamInfo>& params,
 	const ChatCommand::Callback& cb,
@@ -23,5 +23,8 @@ void ChatCommandManager::registerCommand(
 	cmd.cb = cb;
 	cmd.bHidden = hidden;
 
-	m_mapChatCommands.emplace(hash, std::move(cmd));
+	if ( !m_mapChatCommands.contains(hash) )
+		m_mapChatCommands.emplace(hash, std::move(cmd));
+	else
+		m_mapChatCommands.find(hash)->second = std::move(cmd);
 }
