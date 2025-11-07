@@ -39,7 +39,10 @@ All commands also have in-game descriptions available through the `/help` comman
 **Commands prefixed with `wf_phys_` are specific to physics-related features.**
 
 - `/polygonmode`: Switches all rendering between normal and wireframe render mode.
-- `/wf_phys_setworld [integer]`: Scrap Mechanic simulates 4 (four!) physics worlds per one in-game world. This command selects which of these worlds to render:
+- `/wf_hide`: Toggles whether the below chat commands are shown in the command autocomplete or not.  
+This is purely visual to reduce chat pollution, the commands still work even if invisible.
+- `/wf_phys_setworld [integer]`: Scrap Mechanic simulates 4 (four!) physics worlds per one in-game world.  
+This command selects which of these worlds to render:
   - 0: Renders `TickDynamicsWorld` (default, likely the main world).
   - 1: Renders `TickRaycastWorld` - World used for raycasts in the main tick loop (40 TPS). (?)
   - 2: Renders `InterpolatedRaycastWorld` - World used for raycasts in the render loop, is interpolated to avoid jitter. (?)
